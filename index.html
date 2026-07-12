@@ -11,8 +11,8 @@
 <div class="stage">
 
   <div class="stage-title">
-    <h1>LIN RAN</h1>
-    <p>GAME ART · UE5 · VISUAL DEVELOPMENT</p>
+    <h1>GAME</h1>
+    <p>UNITY / GODOT</p>
   </div>
 
   <div class="player" id="player">
@@ -46,7 +46,6 @@
 
   <div class="bottom-bar">
     <a href="#" onclick="openAbout();return false;">ABOUT</a>
-    <a href="mailto:2194733118@qq.com">CONTACT</a>
   </div>
 </div>
 
@@ -64,12 +63,8 @@
   <div class="modal-inner">
     <button class="modal-close" onclick="closeAbout()">✕</button>
     <h3 style="margin-bottom:16px;">ABOUT 关于我</h3>
-    <p>专注游戏世界观、环境概念设计与电影化视觉开发。擅长结合二维概念与三维引擎，打造具备完整叙事氛围的空间场景。</p>
-    <p style="margin-top:14px;color:#aaa;">
-      邮箱：2194733118@qq.com<br>
-      微信：Lin_Ran-7<br>
-      可咨询全职岗位、外包场景、概念设计、美术合作项目
-    </p>
+    <p>邮箱：3040745254@qq.com</p>
+    <p>微信：15178777404</p>
   </div>
 </div>
 
@@ -99,7 +94,7 @@ const projects = [
     engine: 'Unity',
     color: '#f97316',
     screenshots: ['Signal/1.png','Signal/2.png','Signal/3.png','Signal/4.png'],
-    playUrl: 'https://seasea0403.itch.io/signalofmemories',
+    playUrl: '',
     videoUrl: 'BV1PnNu6EE5s',
   },
   {
@@ -119,8 +114,8 @@ const projects = [
     id: 'tide',
     name: '潮痕',
     tag: 'Godot / 2D / 探索解谜',
-    desc: '使用 Godot 引擎开发的 2D 探索解谜游戏。以寻找线索，解开谜题，梳理线索为主要机制，内嵌多重选择与剧情推动，。',
-    highlight: '独立探索解谜，潮汐机制驱动关卡变化',
+    desc: '使用 Godot 引擎开发的 2D 探索解谜游戏。以寻找线索，解开谜题，梳理线索为主要机制，内嵌多重选择与剧情推动。',
+    highlight: '独立探索解谜，复杂机制多重线索',
     cover: 'Tide/cover.png',
     engine: 'Godot',
     color: '#06b6d4',
@@ -133,7 +128,7 @@ const projects = [
     name: '灵啵食堂',
     tag: 'Unity / UGF / 模拟经营',
     desc: '基于 Unity 与 GameFramework（UGF）框架开发的 2D 模拟经营游戏。核心玩法围绕菜品制作展开——从食材采购、加工工位调度到烹饪出餐，玩家需要管理完整的后厨流水线。',
-    highlight: '基于 UGF 框架的完整商业级项目架构',
+    highlight: '独立经营，复杂流程管理',
     cover: 'LimboCanteen/cover.png',
     engine: 'Unity',
     color: '#10b981',
@@ -181,7 +176,14 @@ projects.forEach((p) => {
 // ===== 插入磁带 =====
 function insertTape(projectId) {
   if (activeProjectId === projectId) return;
-  if (activeProjectId) ejectTape(true);
+
+  // 如果已有磁带，先静默清理（不播弹出动画，避免和新插入冲突）
+  if (activeProjectId) {
+    const slot = document.getElementById('tapeSlot');
+    slot.classList.remove('inserted', 'ejecting');
+    document.querySelectorAll('.tape').forEach(t => t.classList.remove('selected'));
+    activeProjectId = null;
+  }
 
   const project = projects.find(p => p.id === projectId);
   if (!project) return;
@@ -197,19 +199,24 @@ function insertTape(projectId) {
     t.classList.toggle('selected', t.dataset.projectId === projectId);
   });
 
-  requestAnimationFrame(() => {
+  // 强制重排：先移除 inserted，浏览器确认后再加回 → 过渡动画每次都播放
+  slot.classList.remove('inserted');
+  void slot.offsetWidth;
     slot.classList.add('inserted');
 
+  // 屏幕内容延迟加载（给槽口动画 400ms 播放时间）
     setTimeout(() => {
       const screen = document.getElementById('screen');
       const screenContent = document.getElementById('screenContent');
       const screenIdle = document.getElementById('screenIdle');
 
+    screenIdle.style.display = 'none';
+
       const playBtn = project.playUrl
         ? `<button class="sc-btn" onclick="openPlay('${project.id}')">▶ 可玩原型</button>`
         : '';
-      const videoBtn = project.videoUrl
-        ? `<button class="sc-btn video-btn" onclick="openPlay('${project.id}','video')">🎬 演示视频</button>`
+      const videoLink = project.videoUrl
+        ? `<a class="sc-video-link" href="javascript:void(0)" onclick="openPlay('${project.id}','video')">🎬 演示视频</a>`
         : '';
 
       // 轮播幻灯片：封面 + 截图
@@ -222,7 +229,6 @@ function insertTape(projectId) {
       });
       const slides = allSlides.join('');
 
-      // 轮播圆点
       const dots = allSlides.map((_, i) =>
         `<button class="dot${i === 0 ? ' active' : ''}" data-index="${i}"></button>`
       ).join('');
@@ -238,10 +244,13 @@ function insertTape(projectId) {
         </div>
         <div class="sc-info">
           <div class="sc-project-tag">${project.tag}</div>
-          <div class="sc-project-name">${project.name}</div>
+          <div class="sc-project-name-line">
+            <span class="sc-project-name">${project.name}</span>
+            ${videoLink}
+          </div>
           <div class="sc-project-desc">${project.desc}</div>
           <div class="sc-project-highlight">${project.highlight}</div>
-          <div class="sc-actions">${playBtn}${videoBtn}</div>
+          <div class="sc-actions">${playBtn}</div>
           <div class="audio-bars">
             <div class="bar"></div><div class="bar"></div><div class="bar"></div>
             <div class="bar"></div><div class="bar"></div>
@@ -249,14 +258,11 @@ function insertTape(projectId) {
         </div>
       `;
 
-      // 初始化轮播
       initCarousel(screenContent.querySelector('.sc-carousel'));
 
       screen.classList.add('active');
       screenContent.classList.add('active');
-      screenIdle.style.display = 'none';
-    }, 500);
-  });
+  }, 400);
 }
 
 // ===== 截图轮播 =====
@@ -295,7 +301,7 @@ function initCarousel(carousel) {
 }
 
 // ===== 弹出磁带 =====
-function ejectTape(silent = false) {
+function ejectTape() {
   if (!activeProjectId) return;
 
   const slot = document.getElementById('tapeSlot');
@@ -303,6 +309,7 @@ function ejectTape(silent = false) {
   const screenContent = document.getElementById('screenContent');
   const screenIdle = document.getElementById('screenIdle');
 
+  // 屏幕先熄
   screenContent.classList.remove('active');
   screen.classList.remove('active');
 
@@ -311,12 +318,13 @@ function ejectTape(silent = false) {
     screenContent.innerHTML = '';
   }, 400);
 
+  // 槽口弹片动画
   slot.classList.add('ejecting');
   setTimeout(() => {
     slot.classList.remove('inserted', 'ejecting');
     document.querySelectorAll('.tape').forEach(t => t.classList.remove('selected'));
     activeProjectId = null;
-  }, silent ? 100 : 400);
+  }, 450);
 }
 
 document.getElementById('btnEject').addEventListener('click', () => ejectTape());

@@ -1,4 +1,16 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+/* ===== 尺寸控制（改这几个变量就能整体缩放） ===== */
+:root {
+  --stage-max-width:  1400px;   /* 整体页面最大宽度 */
+  --player-max-width: 1000px;    /* 播放器面板最大宽度 */
+  --screen-min-height: 400px;   /* 屏幕最小高度（越高越方） */
+  --screen-aspect:     16 / 10; /* 屏幕宽高比 */
+  --tape-width:        180px;   /* 单盘磁带宽度 */
+  --tape-rack-gap:     36px;    /* 磁带之间间距 */
+  --title-size:        48px;    /* 标题字号 */
+}
+
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   background: #1a1a2e;
@@ -13,7 +25,7 @@ body {
 /* ===== 主舞台 ===== */
 .stage {
   width: 100%;
-  max-width: 1100px;
+  max-width: var(--stage-max-width);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -23,7 +35,7 @@ body {
 
 .stage-title { text-align: center; }
 .stage-title h1 {
-  font-size: 48px;
+  font-size: var(--title-size);
   font-weight: 800;
   letter-spacing: 2px;
   background: linear-gradient(135deg, #f97316, #ec4899);
@@ -48,7 +60,7 @@ body {
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  max-width: 800px;
+  max-width: var(--player-max-width);
   box-shadow: 0 20px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
   position: relative;
   overflow: hidden;
@@ -70,8 +82,8 @@ body {
   border: 3px solid #3a3a55;
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
-  min-height: 320px;
+  aspect-ratio: var(--screen-aspect);
+  min-height: var(--screen-min-height);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,8 +232,28 @@ body {
 .sc-project-name {
   font-size: 22px;
   font-weight: 800;
-  margin-bottom: 8px;
   line-height: 1.2;
+}
+.sc-project-name-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.sc-video-link {
+  font-size: 11px;
+  color: #3b82f6;
+  text-decoration: none;
+  border: 1px solid #3b82f6;
+  border-radius: 12px;
+  padding: 2px 10px;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.sc-video-link:hover {
+  background: #3b82f6;
+  color: #fff;
 }
 .sc-project-desc {
   font-size: 12px;
@@ -396,14 +428,14 @@ body {
 /* ===== 磁带架 ===== */
 .tape-rack {
   display: flex;
-  gap: 36px;
+  gap: var(--tape-rack-gap);
   flex-wrap: wrap;
   justify-content: center;
   perspective: 900px;
 }
 
 .tape {
-  width: 180px;
+  width: var(--tape-width);
   cursor: pointer;
   transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.35s;
   position: relative;
