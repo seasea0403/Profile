@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>史园博 — 游戏作品集</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="stage-title">
+    <h1>LIN RAN</h1>
+    <p>GAME ART · UE5 · VISUAL DEVELOPMENT</p>
+  </div>
+
+  <div class="player" id="player">
+
+    <!-- 屏幕 -->
+    <div class="screen" id="screen">
+      <div class="screen-glow"></div>
+      <div class="screen-idle" id="screenIdle">
+        <span class="idle-icon">📼</span>
+        <p>INSERT TAPE</p>
+      </div>
+      <div class="screen-content" id="screenContent"></div>
+    </div>
+
+    <!-- 控制栏 -->
+    <div class="controls">
+      <button class="btn-eject" id="btnEject" title="弹出磁带">⏏</button>
+      <div class="tape-slot" id="tapeSlot">
+        <span class="tape-slot-label">TAPE SLOT</span>
+        <div class="inserted-tape" id="insertedTape">
+          <div class="mini-label"></div>
+          <span class="mini-name"></span>
+          <div class="mini-spin"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 磁带架 -->
+    <div class="tape-rack" id="tapeRack"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <a href="#" onclick="openAbout();return false;">ABOUT</a>
+    <a href="mailto:2194733118@qq.com">CONTACT</a>
+  </div>
+</div>
+
+<!-- 可玩原型全屏浮层 -->
+<div class="play-overlay" id="playOverlay">
+  <div class="play-header">
+    <span class="play-title" id="playTitle">正在加载...</span>
+    <button class="btn-close-play" id="btnClosePlay">✕ 返回作品集</button>
+  </div>
+  <div class="play-body" id="playBody"></div>
+</div>
+
+<!-- About -->
+<div class="about-modal" id="aboutModal">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeAbout()">✕</button>
+    <h3 style="margin-bottom:16px;">ABOUT 关于我</h3>
+    <p>专注游戏世界观、环境概念设计与电影化视觉开发。擅长结合二维概念与三维引擎，打造具备完整叙事氛围的空间场景。</p>
+    <p style="margin-top:14px;color:#aaa;">
+      邮箱：2194733118@qq.com<br>
+      微信：Lin_Ran-7<br>
+      可咨询全职岗位、外包场景、概念设计、美术合作项目
+    </p>
+  </div>
+</div>
+
+<script>
+// ===== 项目数据 =====
+// videoUrl 支持三种格式：
+//   1. 本地 mp4: "Signal/忆波.mp4"
+//   2. 完整链接: "https://youtu.be/xxx" / "https://www.bilibili.com/video/BV1xx"
+//   3. B站纯 bvid: "BV1xxxxxxxx"（自动拼接 player.bilibili.com 嵌入）
+// ============================================================
+// 部署注意事项（GitHub Pages / Gitee Pages）：
+//   - Unity WebGL: Player Settings → Publishing Settings →
+//     勾选 Decompression Fallback，否则 .wasm.br 缺少响应头会白屏
+//   - Godot WebGL: Export 设置里关闭 Thread Support，
+//     否则 SharedArrayBuffer 需要 COOP/COEP 头（GitHub Pages 不支持）
+//   - 关闭 Modal/全屏时 iframe src 置 about:blank 再移除 DOM，
+//     确保 WASM 运行时彻底释放，避免内存泄漏
+// ============================================================
+const projects = [
+  {
+    id: 'ld59',
+    name: '忆波',
+    tag: 'Game Jam / 叙事 / 跑酷',
+    desc: '参加 Ludum Dare 59 全球游戏创作大赛，在 72 小时内从零完成的一款小型叙事跑酷游戏。结合跑酷玩法与碎片化叙事，玩家在奔跑中逐步拼凑出完整的故事。',
+    highlight: '在 1000+ 参赛作品中排名第 38 名',
+    cover: 'Signal/cover.png',
+    engine: 'Unity',
+    color: '#f97316',
+    screenshots: ['Signal/1.png','Signal/2.png','Signal/3.png','Signal/4.png'],
+    playUrl: 'https://seasea0403.itch.io/signalofmemories',
+    videoUrl: 'BV1PnNu6EE5s',
+  },
+  {
+    id: 'fireworks',
+    name: '岁岁烟火铺',
+    tag: '模拟经营 / 江西烟花 / 文旅合作',
+    desc: '以江西烟花文化为背景的模拟经营游戏。玩家经营一间烟火铺子，从选料到制作包装，体验传统烟花制作的完整工艺流程。融入江西地域文化元素与节庆氛围。',
+    highlight: '与当地文旅局达成合作，合作金额达 10 万元',
+    cover: 'Firework/cover.png',
+    engine: 'Unity',
+    color: '#ef4444',
+    screenshots: ['Firework/1.png','Firework/2.png','Firework/3.png','Firework/4.png'],
+    playUrl: '',
+    videoUrl: 'BV1sPNG6oEH3',
+  },
+  {
+    id: 'tide',
+    name: '潮痕',
+    tag: 'Godot / 2D / 探索解谜',
+    desc: '使用 Godot 引擎开发的 2D 探索解谜游戏。以寻找线索，解开谜题，梳理线索为主要机制，内嵌多重选择与剧情推动，。',
+    highlight: '独立探索解谜，潮汐机制驱动关卡变化',
+    cover: 'Tide/cover.png',
+    engine: 'Godot',
+    color: '#06b6d4',
+    screenshots: ['Tide/1.png','Tide/2.png','Tide/3.png','Tide/4.png','Tide/5.png'],
+    playUrl: '',
+    videoUrl: 'BV1yPNG6dESj',
+  },
+  {
+    id: 'canteen',
+    name: '灵啵食堂',
+    tag: 'Unity / UGF / 模拟经营',
+    desc: '基于 Unity 与 GameFramework（UGF）框架开发的 2D 模拟经营游戏。核心玩法围绕菜品制作展开——从食材采购、加工工位调度到烹饪出餐，玩家需要管理完整的后厨流水线。',
+    highlight: '基于 UGF 框架的完整商业级项目架构',
+    cover: 'LimboCanteen/cover.png',
+    engine: 'Unity',
+    color: '#10b981',
+    screenshots: ['LimboCanteen/1.png','LimboCanteen/2.png','LimboCanteen/3.png','LimboCanteen/4.png','LimboCanteen/5.png','LimboCanteen/6.png'],
+    playUrl: '',
+    videoUrl: 'BV1ynNu6EEzE',
+  },
+];
+
+let activeProjectId = null;
+
+// ===== 生成磁带 =====
+const rack = document.getElementById('tapeRack');
+projects.forEach((p) => {
+  const tape = document.createElement('div');
+  tape.className = 'tape';
+  tape.dataset.projectId = p.id;
+
+  const coverHTML = p.cover
+    ? `<img src="${p.cover}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`
+    : '';
+  const fallback = p.cover
+    ? `<div class="cover-placeholder" style="display:none;">🎮</div>`
+    : `<div class="cover-placeholder">🎮</div>`;
+
+  tape.innerHTML = `
+    <div class="tape-body">
+      <div class="tape-cover">
+        ${coverHTML}
+        ${fallback}
+      </div>
+      <div class="tape-color-strip" style="background:${p.color};"></div>
+      <div class="tape-reels">
+        <div class="tape-reel"></div>
+        <div class="tape-reel"></div>
+      </div>
+      <div class="tape-label">${p.name}</div>
+      <div class="tape-tagline">${p.engine}</div>
+    </div>
+  `;
+  tape.addEventListener('click', () => insertTape(p.id));
+  rack.appendChild(tape);
+});
+
+// ===== 插入磁带 =====
+function insertTape(projectId) {
+  if (activeProjectId === projectId) return;
+  if (activeProjectId) ejectTape(true);
+
+  const project = projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  activeProjectId = projectId;
+
+  const slot = document.getElementById('tapeSlot');
+  const inserted = document.getElementById('insertedTape');
+  inserted.querySelector('.mini-label').style.background = project.color;
+  inserted.querySelector('.mini-name').textContent = project.name;
+
+  document.querySelectorAll('.tape').forEach(t => {
+    t.classList.toggle('selected', t.dataset.projectId === projectId);
+  });
+
+  requestAnimationFrame(() => {
+    slot.classList.add('inserted');
+
+    setTimeout(() => {
+      const screen = document.getElementById('screen');
+      const screenContent = document.getElementById('screenContent');
+      const screenIdle = document.getElementById('screenIdle');
+
+      const playBtn = project.playUrl
+        ? `<button class="sc-btn" onclick="openPlay('${project.id}')">▶ 可玩原型</button>`
+        : '';
+      const videoBtn = project.videoUrl
+        ? `<button class="sc-btn video-btn" onclick="openPlay('${project.id}','video')">🎬 演示视频</button>`
+        : '';
+
+      // 轮播幻灯片：封面 + 截图
+      const allSlides = [];
+      if (project.cover) {
+        allSlides.push(`<div class="sc-carousel-slide"><img src="${project.cover}" alt="封面" onerror="this.style.display='none';"></div>`);
+      }
+      project.screenshots.forEach((src, i) => {
+        allSlides.push(`<div class="sc-carousel-slide"><img src="${src}" alt="截图${i+1}" onerror="this.style.display='none';"></div>`);
+      });
+      const slides = allSlides.join('');
+
+      // 轮播圆点
+      const dots = allSlides.map((_, i) =>
+        `<button class="dot${i === 0 ? ' active' : ''}" data-index="${i}"></button>`
+      ).join('');
+
+      screenContent.innerHTML = `
+        <div class="sc-carousel">
+          <div class="sc-carousel-viewport">
+            <div class="sc-carousel-track">${slides}</div>
+          </div>
+          <button class="sc-carousel-arrow prev">&#8249;</button>
+          <button class="sc-carousel-arrow next">&#8250;</button>
+          <div class="sc-carousel-dots">${dots}</div>
+        </div>
+        <div class="sc-info">
+          <div class="sc-project-tag">${project.tag}</div>
+          <div class="sc-project-name">${project.name}</div>
+          <div class="sc-project-desc">${project.desc}</div>
+          <div class="sc-project-highlight">${project.highlight}</div>
+          <div class="sc-actions">${playBtn}${videoBtn}</div>
+          <div class="audio-bars">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div>
+          </div>
+        </div>
+      `;
+
+      // 初始化轮播
+      initCarousel(screenContent.querySelector('.sc-carousel'));
+
+      screen.classList.add('active');
+      screenContent.classList.add('active');
+      screenIdle.style.display = 'none';
+    }, 500);
+  });
+}
+
+// ===== 截图轮播 =====
+function initCarousel(carousel) {
+  if (!carousel) return;
+  const track = carousel.querySelector('.sc-carousel-track');
+  const dots = carousel.querySelectorAll('.dot');
+  const prev = carousel.querySelector('.sc-carousel-arrow.prev');
+  const next = carousel.querySelector('.sc-carousel-arrow.next');
+  const total = dots.length;
+  if (total <= 1) {
+    if (prev) prev.style.display = 'none';
+    if (next) next.style.display = 'none';
+    return;
+  }
+
+  let current = 0;
+
+  function goTo(index) {
+    current = ((index % total) + total) % total;
+    track.style.transform = `translateX(-${current * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  prev.addEventListener('click', () => goTo(current - 1));
+  next.addEventListener('click', () => goTo(current + 1));
+  dots.forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.index))));
+
+  // 支持触摸滑动
+  let startX = 0;
+  track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive: true});
+  track.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) goTo(current + (diff > 0 ? 1 : -1));
+  });
+}
+
+// ===== 弹出磁带 =====
+function ejectTape(silent = false) {
+  if (!activeProjectId) return;
+
+  const slot = document.getElementById('tapeSlot');
+  const screen = document.getElementById('screen');
+  const screenContent = document.getElementById('screenContent');
+  const screenIdle = document.getElementById('screenIdle');
+
+  screenContent.classList.remove('active');
+  screen.classList.remove('active');
+
+  setTimeout(() => {
+    screenIdle.style.display = '';
+    screenContent.innerHTML = '';
+  }, 400);
+
+  slot.classList.add('ejecting');
+  setTimeout(() => {
+    slot.classList.remove('inserted', 'ejecting');
+    document.querySelectorAll('.tape').forEach(t => t.classList.remove('selected'));
+    activeProjectId = null;
+  }, silent ? 100 : 400);
+}
+
+document.getElementById('btnEject').addEventListener('click', () => ejectTape());
+
+// ===== 可玩原型 / 视频 =====
+// 视频链接支持三种格式：
+//   1. 本地 mp4/webm 路径: "Signal/忆波.mp4"
+//   2. YouTube 链接: "https://www.youtube.com/watch?v=xxxxx" 或 "https://youtu.be/xxxxx"
+//   3. B站 bvid（纯 ID）: "BV1xxxxxxxx" → 自动生成 player.bilibili.com 嵌入
+function openPlay(projectId, mode = 'game') {
+  const project = projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  const overlay = document.getElementById('playOverlay');
+  const body = document.getElementById('playBody');
+  const title = document.getElementById('playTitle');
+
+  // 先销毁旧内容（释放 WebGL 内存 / 停止视频）
+  const oldIframe = body.querySelector('iframe');
+  if (oldIframe) {
+    oldIframe.src = 'about:blank';
+    oldIframe.remove();
+  }
+  const oldVideo = body.querySelector('video');
+  if (oldVideo) {
+    oldVideo.pause();
+    oldVideo.src = '';
+    oldVideo.remove();
+  }
+  body.innerHTML = '';
+
+  let content = '';
+
+  if (mode === 'video' && project.videoUrl) {
+    const url = project.videoUrl.trim();
+
+    // B站 bvid（纯 BV 开头、不含 / 和 .）
+    if (/^BV[\w]+$/.test(url)) {
+      content = `<iframe src="https://player.bilibili.com/player.html?bvid=${url}&autoplay=0&danmaku=0&page=1&high_quality=1" scrolling="no" allow="fullscreen" allowfullscreen></iframe>`;
+      title.textContent = '🎬 ' + project.name + ' — B站演示';
+    }
+    // YouTube
+    else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let embedUrl = url;
+      if (url.includes('watch?v=')) {
+        embedUrl = url.replace('watch?v=', 'embed/').split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        const id = url.split('youtu.be/')[1].split('?')[0];
+        embedUrl = 'https://www.youtube.com/embed/' + id;
+      }
+      content = `<iframe src="${embedUrl}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+      title.textContent = '🎬 ' + project.name + ' — YouTube';
+    }
+    // B站完整链接
+    else if (url.includes('bilibili.com')) {
+      // 确保以 https: 开头，兼容 //player.bilibili.com 写法
+      const fixedUrl = url.startsWith('//') ? 'https:' + url : url;
+      content = `<iframe src="${fixedUrl}" scrolling="no" allow="fullscreen" allowfullscreen></iframe>`;
+      title.textContent = '🎬 ' + project.name + ' — B站演示';
+    }
+    // 本地 mp4/webm
+    else {
+      content = `<video src="${url}" controls autoplay style="width:100%;height:100%;object-fit:contain;" playsinline></video>`;
+      title.textContent = '🎬 ' + project.name + ' — 演示视频';
+    }
+  } else if (project.playUrl) {
+    content = `<iframe src="${project.playUrl}" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+    title.textContent = '▶ ' + project.name + ' — 可玩原型';
+  } else {
+    return;
+  }
+
+  body.innerHTML = content;
+  overlay.classList.add('open');
+}
+
+function closePlay() {
+  const overlay = document.getElementById('playOverlay');
+  const body = document.getElementById('playBody');
+
+  // 立刻停止：iframe src 置空 → 触发 WASM 释放 / 视频停止
+  const iframe = body.querySelector('iframe');
+  if (iframe) {
+    iframe.src = 'about:blank';
+    iframe.remove();
+  }
+  const video = body.querySelector('video');
+  if (video) {
+    video.pause();
+    video.src = '';
+    video.remove();
+  }
+  body.innerHTML = '';
+  overlay.classList.remove('open');
+}
+
+document.getElementById('btnClosePlay').addEventListener('click', closePlay);
+
+// ===== About =====
+function openAbout() {
+  document.getElementById('aboutModal').classList.add('open');
+}
+function closeAbout() {
+  document.getElementById('aboutModal').classList.remove('open');
+}
+document.getElementById('aboutModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAbout();
+});
+
+// ===== 键盘 =====
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('playOverlay').classList.contains('open')) {
+      closePlay();
+      return;
+    }
+    if (document.getElementById('aboutModal').classList.contains('open')) {
+      closeAbout();
+      return;
+    }
+    ejectTape();
+    return;
+  }
+  const num = parseInt(e.key);
+  if (num >= 1 && num <= projects.length) {
+    if (document.getElementById('playOverlay').classList.contains('open')) return;
+    if (document.getElementById('aboutModal').classList.contains('open')) return;
+    insertTape(projects[num-1].id);
+  }
+});
+</script>
+
+</body>
+</html>
